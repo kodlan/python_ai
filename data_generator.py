@@ -8,16 +8,21 @@ def csv_writer(data, path):
         for line in data:
             writer.writerow(line)
 
-
-if __name__ == "__main__":
-
-    x = np.arange(-3.14, 3.14, 0.01)
+def generate(x, filename):
     y = np.sin(x)
 
     plt.scatter(x, y)
     plt.show()
 
     # generate list of [x, y] values
-    data = map(lambda (i,j): [i, j], zip(x, y))
+    data = map(lambda (i, j): [i, j], zip(x, y))
 
-    csv_writer(data, "output.csv")
+    csv_writer(data, filename)
+
+if __name__ == "__main__":
+
+    x = np.arange(-3.14 * 2, 3.14 * 2, 0.01)
+    generate(x, "train.csv")
+
+    x = np.arange(-1.5, 1.5, 0.01)
+    generate(x, "test.csv")
