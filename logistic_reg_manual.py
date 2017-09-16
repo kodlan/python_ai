@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def logistic_reg(X_train, Y_train, X_test, Y_test, num_iterations = 2000, learning_rate = 0.001):
+def logistic_reg(X_train, Y_train, X_test, Y_test, num_iterations = 5000, learning_rate = 5e-6):
     w, b = init_params(X_train.shape[0])
 
     w, b, dw, db, cost_list = gradient_descent(w, b, X_train, Y_train, num_iterations, learning_rate)
@@ -15,12 +15,19 @@ def logistic_reg(X_train, Y_train, X_test, Y_test, num_iterations = 2000, learni
     print("test accuracy: {} %".format(100 - np.mean(np.abs(Y_prediction_test - Y_test)) * 100))
 
     plot_cost(cost_list, learning_rate)
+    plot_res(X_test, Y_prediction_test)
+
+
+def plot_res(x, y):
+    plt.figure(figsize=(12, 8))
+    plt.scatter(x, y)
+    plt.show()
 
 
 def plot_cost(costs, learning_rate):
     plt.plot(costs)
     plt.ylabel('cost')
-    plt.xlabel('iterations (per hundreds)')
+    plt.xlabel('iterations')
     plt.title("Learning rate =" + str(learning_rate))
     plt.show()
 
@@ -71,11 +78,15 @@ def calc_cost(m, A, Y):
 
 
 def compute(w, b, X):
+    m = X.shape[1]
+    Y_prediction = np.zeros((1,m))
+
     w = w.reshape(X.shape[0], 1)
-
     A = sigmoid(np.dot(w.T, X) + b)
-    Y_prediction = A
+    for i in range(A.shape[1]):
+        Y_prediction[0, i] = A[0, i] <=0.5
 
+    Y_prediction = A
     return Y_prediction
 
 
