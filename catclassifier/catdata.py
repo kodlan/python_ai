@@ -7,6 +7,7 @@ import random
 IMAGE_SIZE = 64*64*3
 
 def load_image(filename):
+    # print (filename)
     img = Image.open(filename)
     img.load()
     data = np.asarray(img, dtype="int32")
@@ -15,12 +16,12 @@ def load_image(filename):
 
 def get_cat_file_names():
     cat_path = "cats/"
-    return [cat_path + f for f in listdir(cat_path) if isfile(join(cat_path, f))]
+    return [cat_path + f for f in listdir(cat_path) if f.endswith(".jpg")]
 
 
 def get_noncat_file_names():
     noncats_path = "noncats/"
-    return [noncats_path + f for f in listdir(noncats_path) if isfile(join(noncats_path, f))]
+    return [noncats_path + f for f in listdir(noncats_path) if f.endswith(".jpg")]
 
 
 def extend_file_name_list(cat_files, noncat_files, size):
