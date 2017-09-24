@@ -1,7 +1,6 @@
 from PIL import Image
 import numpy as np
 from os import listdir
-from os.path import isfile, join
 import random
 
 IMAGE_SIZE = 64*64*3
@@ -49,11 +48,14 @@ def generate_minibatch(size):
 
     for file_name in train_files:
         x = load_image(file_name)
-        y = int(file_name.startswith("cats/"))
+        if (file_name.startswith("cats/")):
+            y = [1, 0]
+        else:
+            y = [0, 1]
 
         X.append(x)
         Y.append(y)
 
     return train_files, \
            np.reshape(np.asarray(X), (IMAGE_SIZE, size)), \
-           np.reshape(np.asarray(Y), (1, size))
+           np.reshape(np.asarray(Y), (2, size))
