@@ -62,19 +62,23 @@ def test(X_p, Y_predict, sess):
     result = sess.run(Y_predict, feed_dict={X_p: X})
     # result = Y_predict.eval(feed_dict={X_p: X})
 
-    result = (tf.argmax(result, 0)).eval()
-    actual_result = tf.argmax(Y, 0).eval()
+    result = (tf.argmax(result, 1)).eval()
+    actual_result = tf.argmax(Y, 1).eval()
     difference = tf.equal(result, actual_result).eval()
+
+    accuracy = tf.reduce_mean(tf.cast(difference, "float")).eval()
 
     print ("result = ")
     print (result)
     print
     print ("actual results = ")
     print (actual_result)
+    print ("accuracy = ")
+    print (accuracy)
 
-    for i in range(test_samples):
-        if not bool(difference[i]):
-            print ("miss qualified image : %s" % files[i])
+    # for i in range(test_samples):
+    #     if not bool(difference[i]):
+    #         print ("miss qualified image : %s" % files[i])
 
 
 def model(learning_rate=0.0001, num_epoch=1500, number_of_images=128, minibatch_size=8):
