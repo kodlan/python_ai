@@ -4,9 +4,12 @@ from keras.applications.resnet50 import preprocess_input, decode_predictions
 import numpy as np
 import os.path
 from os import listdir
+from nearpy import Engine
+from nearpy.hashes import RandomBinaryProjections
 
 
 BATCH_SIZE = 32
+VECTOR_DIMENSION = 2048
 
 
 def get_image(image_path):
@@ -26,20 +29,31 @@ def get_image_list(image_folder):
     return [dir + f for f in listdir(dir) if f.endswith(".jpg")]
 
 
+def generate_vectors(model, image_list, near_db_engine):
+    # counting only complete batches for now
+    for batch in range(len(image_list) / BATCH_SIZE):
+        input_batch = []
+        for i in range(BATCH_SIZE):
+            input_batch.append(get_image(image_list[BATCH_SIZE * batch + i]))
+
+        input_array = np.array(input_batch)
+
+        # this will return values from last hidden layer of the network
+        # shape = (32, 1, 1, 2048)
+        output = predict(model, input_array)
+        #store_vectors(output, image_list, near_db_engine)
 
 
-model = ResNet50(weights='imagenet')
+def store_vectors(output, image_list, near_db_engine):
+    for i in range(len(image_list)):
+        image_name = image_list[i]
+        image_vector = output[i]
+        #todo: fix dimentions
+        near_db_engine.store_vector(image_vector, image_name)
+
+
+engine = Engine(VECTOR_DIMENSION)
+
+model = ResNet50(weights='imagenet', include_top=False)
 image_list = get_image_list("sample_images/")
-
-# counting only complete batches for now
-for batch in range(len(image_list) / BATCH_SIZE):
-    input_batch = []
-    for i in range(BATCH_SIZE):
-        input_batch.append(get_image(image_list[BATCH_SIZE * batch + i]))
-
-    input_array = np.array(input_batch)
-
-    preds = predict(model, input_array)
-
-    print('Predicted:', decode_predictions(preds, top=3))
-
+generate_vectors(model, image_list, engine)
