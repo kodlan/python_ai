@@ -1,12 +1,11 @@
-from keras.applications.resnet50 import ResNet50
-from keras.preprocessing import image
-from keras.applications.resnet50 import preprocess_input, decode_predictions
-import numpy as np
 import os.path
 from os import listdir
-from nearpy import Engine
-from nearpy.hashes import RandomBinaryProjections
 
+import numpy as np
+from keras.applications.resnet50 import ResNet50
+from keras.applications.resnet50 import preprocess_input
+from keras.preprocessing import image
+from nearpy import Engine
 
 BATCH_SIZE = 32
 VECTOR_DIMENSION = 2048
@@ -32,16 +31,44 @@ def get_image_list(image_folder):
 def generate_vectors(model, image_list, near_db_engine):
     # counting only complete batches for now
     for batch in range(len(image_list) / BATCH_SIZE):
-        input_batch = []
-        for i in range(BATCH_SIZE):
-            input_batch.append(get_image(image_list[BATCH_SIZE * batch + i]))
+        print ("Generating predictions for batch #" + str(batch))
 
+        input_batch = load_image_batch(batch, image_list, BATCH_SIZE)
         input_array = np.array(input_batch)
 
         # this will return values from last hidden layer of the network
         # shape = (32, 1, 1, 2048)
         output = predict(model, input_array)
+        output = np.reshape(output, (BATCH_SIZE, VECTOR_DIMENSION))
         store_vectors(output, input_batch, near_db_engine)
+
+
+def load_image_batch(batch, image_list, batch_size):
+    input_batch = []
+    for i in range(batch_size):
+        input_batch.append(get_image(image_list[batch_size * batch + i]))
+    return input_batch
+
+
+def generate_test_vectors(model, image_list, engine):
+    # ignoring batches, assuming that test images count is not that big
+    img_count = len(image_list)
+
+    input_batch = load_image_batch(0, image_list, img_count)
+    input_array = np.array(input_batch)
+
+    output = predict(model, input_array)
+    output = np.reshape(output, (img_count, VECTOR_DIMENSION))
+
+    search_db_closest_match(output, engine)
+
+
+def search_db_closest_match(feature_vectors, engine):
+    for i in range(feature_vectors.shape[0]):
+        print ("Feature shape = " + str(feature_vectors[i].flatten().shape))
+        result = engine.neighbours(feature_vectors[i].flatten())
+        print result
+
 
 def store_vectors(output, input_batch, near_db_engine):
     for i in range(len(input_batch) - 1):
@@ -56,3 +83,6 @@ engine = Engine(VECTOR_DIMENSION)
 model = ResNet50(weights='imagenet', include_top=False)
 image_list = get_image_list("sample_images/")
 generate_vectors(model, image_list, engine)
+
+test_image_list = get_image_list("test_images/")
+generate_test_vectors(model, test_image_list, engine)
