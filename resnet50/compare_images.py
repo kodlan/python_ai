@@ -41,14 +41,13 @@ def generate_vectors(model, image_list, near_db_engine):
         # this will return values from last hidden layer of the network
         # shape = (32, 1, 1, 2048)
         output = predict(model, input_array)
-        #store_vectors(output, image_list, near_db_engine)
+        store_vectors(output, input_batch, near_db_engine)
 
+def store_vectors(output, input_batch, near_db_engine):
+    for i in range(len(input_batch) - 1):
+        image_name = input_batch[i]
+        image_vector = output[i].flatten()
 
-def store_vectors(output, image_list, near_db_engine):
-    for i in range(len(image_list)):
-        image_name = image_list[i]
-        image_vector = output[i]
-        #todo: fix dimentions
         near_db_engine.store_vector(image_vector, image_name)
 
 
