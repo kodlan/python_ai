@@ -7,7 +7,9 @@ from keras.optimizers import SGD
 from keras.utils import np_utils
 import tensorflow as tf
 from tensorflow.python.saved_model import builder as saved_model_builder
-from tensorflow.python.saved_model import tag_constants, signature_constants, signature_def_utils_impl
+from tensorflow.python.saved_model import tag_constants, signature_constants
+from keras.utils import plot_model
+
 
 sess = tf.Session()
 K.set_session(sess)
@@ -61,7 +63,7 @@ X = Dense(10, activation='softmax', name='fc')(X)
 
 model = Model(inputs = X_input, outputs = X, name='mnistmodel')
 model.compile(optimizer = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True), loss = "mean_squared_error", metrics = ["accuracy"])
-model.fit(x = X_train, y = Y_train, epochs = 5, batch_size = 32)
+model.fit(x = X_train, y = Y_train, epochs = 5, batch_size = 128)
 
 preds = model.evaluate(x = X_test, y = Y_test)
 
@@ -88,3 +90,5 @@ builder.add_meta_graph_and_variables(
       legacy_init_op=legacy_init_op)
 # save the graph
 builder.save()
+
+plot_model(model, to_file='model.png')
