@@ -6,10 +6,8 @@ from keras.models import Model
 from keras.optimizers import SGD
 from keras.utils import np_utils
 import tensorflow as tf
-from tensorflow.python.saved_model import builder as saved_model_builder
-from tensorflow.python.saved_model import tag_constants, signature_constants
 from keras.utils import plot_model
-
+from tensorflow.python.tools import freeze_graph, optimize_for_inference_lib
 
 sess = tf.Session()
 K.set_session(sess)
@@ -63,32 +61,53 @@ X = Dense(10, activation='softmax', name='fc')(X)
 
 model = Model(inputs = X_input, outputs = X, name='mnistmodel')
 model.compile(optimizer = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True), loss = "mean_squared_error", metrics = ["accuracy"])
-model.fit(x = X_train, y = Y_train, epochs = 5, batch_size = 128)
+model.fit(x = X_train, y = Y_train, epochs = 1, batch_size = 128)
 
 preds = model.evaluate(x = X_test, y = Y_test)
 
 print ("Loss = " + str(preds[0]))
 print ("Test Accuracy = " + str(preds[1]))
 
+print ("model.output = ")
+print (model.output)
 
-prediction_signature = tf.saved_model.signature_def_utils.predict_signature_def({"image": model.input}, {"prediction": model.output})
-
-builder = saved_model_builder.SavedModelBuilder("model_output")
-legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
+plot_model(model, to_file='model.png')
 
 # Initialize global variables and the model
 init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
 sess.run(init_op)
 
-# Add the meta_graph and the variables to the builder
-builder.add_meta_graph_and_variables(
-      sess, [tag_constants.SERVING],
-      signature_def_map={
-           signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
-               prediction_signature,
-      },
-      legacy_init_op=legacy_init_op)
-# save the graph
-builder.save()
+saver = tf.train.Saver()
+tf.train.write_graph(sess.graph_def, '.', 'model.pbtxt')
+model_ckpt_name = saver.save(sess, 'model.ckpt')
 
-plot_model(model, to_file='model.png')
+# Freeze the graph
+input_graph_path = 'model.pbtxt'
+checkpoint_path = model_ckpt_name
+output_node_names = "fc/Softmax"
+restore_op_name = "save/restore_all"
+filename_tensor_name = "save/Const:0"
+output_frozen_graph_name = 'frozen_model.pb'
+output_optimized_graph_name = 'optimized_model.pb'
+prefix_output_node_names_of_final_network = 'output_node'
+
+freeze_graph.freeze_graph(input_graph_path, "",
+                          False, checkpoint_path, output_node_names,
+                          restore_op_name, filename_tensor_name,
+                          output_frozen_graph_name, True, "")
+
+# Optimize graph
+input_graph_def = tf.GraphDef()
+with tf.gfile.Open(output_frozen_graph_name, "rb") as f:
+    data = f.read()
+    input_graph_def.ParseFromString(data)
+
+output_graph_def = optimize_for_inference_lib.optimize_for_inference(
+        input_graph_def,
+        ["input_1"], # an array of the input node(s)
+        ["fc/Softmax"], # an array of output nodes
+        tf.float32.as_datatype_enum)
+
+# Save the optimized graph
+f = tf.gfile.FastGFile(output_optimized_graph_name, "w")
+f.write(output_graph_def.SerializeToString())
