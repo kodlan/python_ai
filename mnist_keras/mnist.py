@@ -70,6 +70,8 @@ print ("Test Accuracy = " + str(preds[1]))
 
 print ("model.output = ")
 print (model.output)
+print ("model.input = ")
+print (model.input)
 
 plot_model(model, to_file='model.png')
 
