@@ -61,7 +61,7 @@ X = Dense(10, activation='softmax', name='fc')(X)
 
 model = Model(inputs = X_input, outputs = X, name='mnistmodel')
 model.compile(optimizer = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True), loss = "mean_squared_error", metrics = ["accuracy"])
-model.fit(x = X_train, y = Y_train, epochs = 1, batch_size = 128)
+model.fit(x = X_train, y = Y_train, epochs = 5, batch_size = 128)
 
 preds = model.evaluate(x = X_test, y = Y_test)
 
