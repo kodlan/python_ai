@@ -61,7 +61,7 @@ X = Dense(10, activation='softmax', name='fc')(X)
 
 model = Model(inputs = X_input, outputs = X, name='mnistmodel')
 model.compile(optimizer = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True), loss = "mean_squared_error", metrics = ["accuracy"])
-model.fit(x = X_train, y = Y_train, epochs = 5, batch_size = 128)
+model.fit(x = X_train, y = Y_train, epochs = 10, batch_size = 128)
 
 preds = model.evaluate(x = X_test, y = Y_test)
 
@@ -75,10 +75,7 @@ print (model.input)
 
 plot_model(model, to_file='model.png')
 
-# Initialize global variables and the model
-init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
-sess.run(init_op)
-
+# Save graph
 saver = tf.train.Saver()
 tf.train.write_graph(sess.graph_def, '.', 'model.pbtxt')
 model_ckpt_name = saver.save(sess, 'model.ckpt')
