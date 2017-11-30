@@ -75,19 +75,31 @@ print (model.input)
 
 plot_model(model, to_file='model.png')
 
+# this is not working for some reason
+# # Create a builder
+# builder = tf.saved_model.builder.SavedModelBuilder('./SavedModel/')
+# builder.add_meta_graph_and_variables(sess,
+#                                        [tf.saved_model.tag_constants.SERVING],
+#                                        signature_def_map=None,
+#                                        assets_collection=None)
+# builder.save()
+
+model_work_dir = './model/'
+
 # Save graph
 saver = tf.train.Saver()
-tf.train.write_graph(sess.graph_def, '.', 'model.pbtxt')
-model_ckpt_name = saver.save(sess, 'model.ckpt')
+tf.train.write_graph(sess.graph_def, model_work_dir, 'model.pbtxt')
+model_ckpt_name = saver.save(sess, model_work_dir + 'model.ckpt')
 
 # Freeze the graph
-input_graph_path = 'model.pbtxt'
+input_graph_path = model_work_dir + 'model.pbtxt'
+output_frozen_graph_name = model_work_dir + 'frozen_model.pb'
+output_optimized_graph_name = model_work_dir + 'optimized_model.pb'
 checkpoint_path = model_ckpt_name
+
 output_node_names = "fc/Softmax"
 restore_op_name = "save/restore_all"
 filename_tensor_name = "save/Const:0"
-output_frozen_graph_name = 'frozen_model.pb'
-output_optimized_graph_name = 'optimized_model.pb'
 prefix_output_node_names_of_final_network = 'output_node'
 
 freeze_graph.freeze_graph(input_graph_path, "",
