@@ -1,6 +1,6 @@
 from keras import backend as K
 from keras.datasets import mnist
-from keras.layers import Input, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D
+from keras.layers import Input, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, Dropout
 from keras.layers import MaxPooling2D
 from keras.models import Model
 from keras.optimizers import SGD
@@ -62,6 +62,7 @@ X = Activation('relu')(X)
 
 X = MaxPooling2D((2, 2), name = 'max_pool1')(X)
 
+X = Dropout(0.2)(X)
 X = Flatten()(X)
 X = Dense(128, activation='relu')(X)
 X = Dense(64, activation='relu')(X)
