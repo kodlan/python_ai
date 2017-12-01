@@ -54,9 +54,17 @@ X = Conv2D(32, (7, 7), strides = (1, 1), name = 'conv0')(X)
 X = BatchNormalization(axis = 3, name = 'bn0')(X)
 X = Activation('relu')(X)
 
-X = MaxPooling2D((2, 2), name = 'max_pool')(X)
+X = MaxPooling2D((2, 2), name = 'max_pool0')(X)
+
+X = Conv2D(15, (3, 3), strides = (1, 1), name = 'conv1')(X)
+X = BatchNormalization(axis = 3, name = 'bn1')(X)
+X = Activation('relu')(X)
+
+X = MaxPooling2D((2, 2), name = 'max_pool1')(X)
 
 X = Flatten()(X)
+X = Dense(128, activation='relu')(X)
+X = Dense(64, activation='relu')(X)
 X = Dense(10, activation='softmax', name='fc')(X)
 
 model = Model(inputs = X_input, outputs = X, name='mnistmodel')
@@ -65,13 +73,13 @@ model.fit(x = X_train, y = Y_train, epochs = 10, batch_size = 128)
 
 preds = model.evaluate(x = X_test, y = Y_test)
 
-print ("Loss = " + str(preds[0]))
-print ("Test Accuracy = " + str(preds[1]))
+print("Loss = " + str(preds[0]))
+print("Test Accuracy = " + str(preds[1]))
 
-print ("model.output = ")
-print (model.output)
-print ("model.input = ")
-print (model.input)
+print("model.output = ")
+print(model.output)
+print("model.input = ")
+print(model.input)
 
 plot_model(model, to_file='model.png')
 
